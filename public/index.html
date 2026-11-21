@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title></title>
+  <link rel="stylesheet" href="static/css/index.css">
+</head>
+
+<body>
+  
+  <h1>Tensorflight</h1>
+  <p>Tensorflight is an open-source GPU runtime observability and digital forensics research project built in pure C using eBPF and <a rel="external" href="https://docs.kernel.org/bpf/libbpf/libbpf_overview.html">libbpf</a>.</p>
+<p>It captures and analyzes GPU-related kernel interactions by observing <code>ioctl</code> system calls and their associated device and process context. Operating at the kernel boundary, Tensorflight provides low-overhead telemetry of GPU driver interactions without requiring instrumentation, recompilation, or modification of target applications.</p>
+<p>The project aims to establish a foundation for kernel-level GPU runtime observability, event recording, and forensic analysis.</p>
+<p>Tensorflight is still in <strong>very early</strong> stage, if you want to contribute the repository is in <a rel="external" href="https://github.com/ezrantn/tensorflight">GitHub</a>.</p>
+<h2 id="core-capabilities">Core Capabilities</h2>
+<ul>
+<li><strong>Kernel-Level Observation:</strong> Monitor GPU-related <code>ioctl</code> activity through eBPF.</li>
+<li><strong>Command Decoding:</strong> Extract direction, payload size, type, and command number from <code>ioctl</code> command identifiers.</li>
+<li><strong>Process and Device Attribution:</strong> Associate observed events with process metadata and device context.</li>
+<li><strong>Bounded Argument Inspection:</strong> Perform verifier-safe inspection of accessible syscall argument data.</li>
+<li><strong>Structured Event Streaming:</strong> Transfer kernel-generated telemetry to userspace through BPF ring buffers.</li>
+</ul>
+<h2 id="overview">Overview</h2>
+<p>Modern GPU and CUDA workloads rely heavily on <code>ioctl</code> system calls to communicate with kernel drivers and device nodes (such as <code>nvidia-uvm</code> and related character devices). While high-level profilers and application logs show <em>what</em> an application reports doing, tracing <code>ioctl</code> traffic directly at the syscall layer provides a ground-truth view of control and data-plane interactions without instrumenting target binaries.</p>
+<p>Tensorflight approaches this problem through small, verifiable layers:</p>
+<ol>
+<li><strong>Command Decoding (<code>cmd</code>):</strong> Unpacking 32-bit <code>ioctl</code> command numbers in kernel space into direction (<code>_IOC_DIR</code>), payload size (<code>_IOC_SIZE</code>), type/magic byte (<code>_IOC_TYPE</code>), and command number (<code>_IOC_NR</code>).</li>
+<li><strong>Device &amp; Process Attribution:</strong> Correlating events with process metadata (<code>PID</code>, <code>COMM</code>) and target device descriptors so telemetry stays focused and legible.</li>
+<li><strong>Bounded Payload Inspection:</strong> Safely reading and analyzing argument pointers (<code>arg</code>) under strict BPF verifier constraints and driver-specific <code>ioctl</code> conventions.</li>
+<li><strong>Forensic Telemetry &amp; Event Streaming:</strong> Shipping structured events from kernel space to user space via ring buffers for inspection, auditing, and anomaly/forensics analysis.</li>
+</ol>
+<h2 id="goals">Goals</h2>
+<ul>
+<li><strong>Zero-Target Instrumentation:</strong> Observe GPU/CUDA <code>ioctl</code> activity from the kernel without modifying, recompiling, or injecting libraries into user-space workloads.</li>
+<li><strong>Verifier-Safe Kernel Extraction:</strong> Extract <code>ioctl</code> metadata and device context reliably while satisfying strict eBPF verifier bounds on loops, memory reads, and stack usage.</li>
+<li><strong>Forensic Visibility:</strong> Capture clear, structured call records (<code>PID</code>, command name, device, direction, magic, command number, and payload size) to support low-level debugging and GPU/driver forensic analysis.</li>
+<li><strong>Modular Architecture:</strong> Keep decoding, device resolution, and argument/payload inspection decoupled so each stage can be tested, reasoned about, and extended independently.</li>
+</ul>
+<h2 id="how-to-run">How to Run</h2>
+<p>Before CLI flags are added, the binary runs with default hardcoded behavior (streaming NVIDIA <code>ioctl</code> events to <code>stdout</code> until SIGINT):</p>
+<pre><code data-lang="bash">make
+make test
+sudo ./.output/tensorflight
+</code></pre>
+<p>In a second terminal, trigger GPU activity (for example <code>nvidia-smi</code> or a CUDA workload), then press Ctrl+C in the collector terminal to exit cleanly.</p>
+
+
+</body>
+
+</html>
