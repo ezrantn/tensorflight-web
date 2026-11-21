@@ -9,7 +9,7 @@ It captures and analyzes GPU-related kernel interactions by observing `ioctl` sy
 
 The project aims to establish a foundation for kernel-level GPU runtime observability, event recording, and forensic analysis.
 
-Tensorflight is still in **very early** stage, if you want to contribute the repository is in [GitHub](https://github.com/ezrantn/tensorflight).
+Tensorflight is still in its **very early stages**. If you'd like to contribute, you can find the repository [here](https://github.com/ezrantn/tensorflight).
 
 ## Core Capabilities
 
